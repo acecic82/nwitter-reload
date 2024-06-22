@@ -70,7 +70,7 @@ export default function PostTweetForm() {
         const {files} = e?.target
 
         if (files && files.length === 1) {
-            setFile(files[0])
+                        setFile(files[0])
         }
     }
 
@@ -81,6 +81,7 @@ export default function PostTweetForm() {
         
         if (!user || isLoading || tweet === "" || tweet.length > 180) return
 
+        //1메가 이하만 업로드
         if(file && file.size > 1024 * 1024) {
             return
         }
@@ -96,7 +97,7 @@ export default function PostTweetForm() {
             })
 
             if (file) {
-                const locationRef = ref(storage, `tweets/${user.uid}-${user.displayName}/${doc.id}`)
+                const locationRef = ref(storage, `tweets/${user.uid}/${doc.id}`)
                 
                 const uploadResult = await uploadBytes(locationRef, file)
                 const downloadURL = await getDownloadURL(uploadResult.ref)

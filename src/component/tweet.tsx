@@ -2,7 +2,7 @@ import { styled } from "styled-components";
 import { ITweet } from "./timeline";
 import { doc, deleteDoc, addDoc, collection, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db, storage } from "../firebase";
-import { deleteObject, ref } from "firebase/storage";
+import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useState } from "react";
 
 
@@ -98,10 +98,33 @@ const EditTextArea = styled.textarea`
     }
 `
 
+const EditImage = styled.label`
+    background-color: #1d9bf0;
+    color: white;
+    font-weight: 600;
+    border: 0;
+    font-size: 12px;
+    padding: 5px 10px;
+    text-transform: uppercase;
+    border-radius: 5px;
+    resize: none;
+    overflow-x: none;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+                Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    overflow-y: hidden;
+    &:focus {
+        outline: none;
+    }
+`
+
+const EditImageInput = styled.input`
+    display: none;
+`
+
 export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
     const user = auth.currentUser
-    const [isLoading, setLoading] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
+    const [isImgEditing, setIsImgEditing] = useState(false)
     const [tweetToEdit, setTweetToEdit] = useState(tweet)
     
     const onDelete = async() => {
@@ -136,10 +159,10 @@ export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
     const onSave = async () => {
         setIsEditing(false)
 
-        if (!user || isLoading || tweetToEdit === "" || tweetToEdit.length > 180) return
+        if (!user || isEditing || tweetToEdit === "" || tweetToEdit.length > 180) return
 
         try {
-            setLoading(true)
+            setIsEditing(true)
 
             const takenDoc = doc(db, "tweets", id)
             await updateDoc(takenDoc, {
@@ -149,7 +172,44 @@ export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
         } catch (e) {
             console.log(e)
         } finally {
-            setLoading(false)
+            setIsEditing(false)
+        }
+    }
+
+    const onFileEdit = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const {files} = e?.target
+
+        if (files === null) return
+
+        const file = files[0]
+
+        if (!user || isImgEditing) return
+
+        if(file && file.size > 1024 * 1024) {
+            return
+        }
+
+        console.log("Call Tweet File",  file)
+        try {
+            setIsImgEditing(true)
+
+            if (file) {
+                const takenDoc = doc(db, "tweets", id)
+
+                const locationRef = ref(storage, `tweets/${user.uid}/${takenDoc.id}`)
+                
+                const uploadResult = await uploadBytes(locationRef, file)
+                const downloadURL = await getDownloadURL(uploadResult.ref)
+                
+                await updateDoc(takenDoc, {
+                    photo: downloadURL
+                })
+            }
+
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setIsImgEditing(false)
         }
     }
 
@@ -157,7 +217,7 @@ export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
         <Wrapper>
             <Column>
                 <UserName>{username}</UserName>
-                { isEditing ? <EditTextArea onChange={onChange}>{tweetToEdit}</EditTextArea>
+                { isEditing ? <EditTextArea onChange={onChange} value = {tweetToEdit}/>
                                 : <Payload>{tweetToEdit}</Payload>
                 }
                 { user?.uid === userId ? 
@@ -174,7 +234,12 @@ export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
                 {photo ? 
                         <PhotoWrapper>
                             <Photo src={photo}></Photo>
-                            <EditButton>Edit</EditButton>
+                            <EditImage htmlFor="editfile">{isImgEditing ? "Loading..."
+                                                                         : "Edit photo"
+                                                            }
+                            </EditImage>
+                            {/* 이미지면 어떤것도 상관없어 */}
+                            <EditImageInput onChange = {onFileEdit} type="file" id = "editfile" accept="image/*" />
                         </PhotoWrapper> 
                         : null}
             </Column>
