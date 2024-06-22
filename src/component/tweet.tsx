@@ -141,10 +141,7 @@ export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
             }
         } catch (e) {
             console.log(e)
-        } finally {
-
         }
-        
     }
 
     const onEdit = () => {
