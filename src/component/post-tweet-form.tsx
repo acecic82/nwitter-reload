@@ -70,7 +70,8 @@ export default function PostTweetForm() {
         const {files} = e?.target
 
         if (files && files.length === 1) {
-                        setFile(files[0])
+            console.log("Call Post tweet form set File")
+            setFile(files[0])
         }
     }
 

@@ -189,7 +189,6 @@ export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
             return
         }
 
-        console.log("Call Tweet File",  file)
         try {
             setIsImgEditing(true)
 
@@ -200,7 +199,7 @@ export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
                 
                 const uploadResult = await uploadBytes(locationRef, file)
                 const downloadURL = await getDownloadURL(uploadResult.ref)
-                
+
                 await updateDoc(takenDoc, {
                     photo: downloadURL
                 })
@@ -234,12 +233,12 @@ export default function Tweet({username, photo, tweet, id, userId}: ITweet) {
                 {photo ? 
                         <PhotoWrapper>
                             <Photo src={photo}></Photo>
-                            <EditImage htmlFor="editfile">{isImgEditing ? "Loading..."
+                            <EditImage htmlFor={`editfile-${id}`}>{isImgEditing ? "Loading..."
                                                                          : "Edit photo"
                                                             }
                             </EditImage>
                             {/* 이미지면 어떤것도 상관없어 */}
-                            <EditImageInput onChange = {onFileEdit} type="file" id = "editfile" accept="image/*" />
+                            <EditImageInput onChange = {onFileEdit} type="file" id = {`editfile-${id}`} accept="image/*" />
                         </PhotoWrapper> 
                         : null}
             </Column>
