@@ -1,6 +1,6 @@
 import { styled } from "styled-components";
 import { ITweet } from "./timeline";
-import { doc, deleteDoc, addDoc, collection, getDoc, updateDoc } from "firebase/firestore";
+import { doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { auth, db, storage } from "../firebase";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useState } from "react";
